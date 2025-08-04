@@ -99,20 +99,23 @@ class InteractivePhonicsBalloonPopGame {
     const sWords = this.words.filter(w => w.startsWithS);
     const nonSWords = this.words.filter(w => !w.startsWithS);
     
-    // Select exactly 2 random S-words
+    // Select exactly 2 random S-words (correct answers)
     const selectedSWords = this.shuffleArray([...sWords]).slice(0, 2);
     
-    // Select 5 random non-S-words
+    // Select 5 random non-S-words (incorrect answers)
     const selectedNonSWords = this.shuffleArray([...nonSWords]).slice(0, 5);
     
-    // Combine and shuffle all selected words
-    const allSelectedWords = this.shuffleArray([...selectedSWords, ...selectedNonSWords]);
+    // Combine the selected words: 2 correct + 5 incorrect = 7 total
+    const allSelectedWords = [...selectedSWords, ...selectedNonSWords];
+    
+    // Shuffle the combined list to randomize positions
+    const shuffledWords = this.shuffleArray(allSelectedWords);
     
     // Create 7 balloons with proper spacing
     const placedBalloons = [];
     
     for (let i = 0; i < 7; i++) {
-      const wordData = allSelectedWords[i];
+      const wordData = shuffledWords[i];
       const balloon = this.createBalloonWithSpacing(wordData.word, wordData.startsWithS, placedBalloons);
       if (balloon) {
         this.balloons.push(balloon);
