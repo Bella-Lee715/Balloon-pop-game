@@ -99,7 +99,7 @@ class InteractivePhonicsBalloonPopGame {
     const sWords = this.words.filter(w => w.startsWithS);
     const nonSWords = this.words.filter(w => !w.startsWithS);
     
-    // Select the correct word based on current round
+    // Hardcode the correct word based on current round
     let correctWord;
     if (this.currentRound === 1) {
       correctWord = this.words.find(w => w.word === "sock");
