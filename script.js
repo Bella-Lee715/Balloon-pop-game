@@ -19,8 +19,8 @@ class InteractivePhonicsBalloonPopGame {
     // Phonics words - some start with /s/ sound, some don't
     this.words = [
       // Words that start with /s/ sound (should pop)
-      { word: "sun", startsWithS: true, img: "images/sun.png" },
-      { word: "sock", startsWithS: true, img: "images/sock.png" },
+      { word: "sun", startsWithS: true, img: "images/sun.jpg" },
+      { word: "sock", startsWithS: true, img: "images/sock.jpg" },
       { word: "snake", startsWithS: true },
       { word: "star", startsWithS: true },
       { word: "sail", startsWithS: true },
@@ -32,7 +32,7 @@ class InteractivePhonicsBalloonPopGame {
       { word: "sink", startsWithS: true },
       { word: "soap", startsWithS: true },
       { word: "sail", startsWithS: true },
-      { word: "sock", startsWithS: true, img: "images/sock.png" },
+      { word: "sock", startsWithS: true, img: "images/sock.jpg" },
       { word: "soup", startsWithS: true },
       
       // Words that don't start with /s/ sound (should not pop)
