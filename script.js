@@ -90,7 +90,7 @@ class InteractivePhonicsBalloonPopGame {
     this.correctFound = 0;
     this.updateDisplay();
     
-    // Create exactly 10 balloons with exactly 2 correct ones
+    // Create exactly 7 balloons with exactly 2 correct ones
     this.createBalloons();
   }
   
@@ -102,16 +102,16 @@ class InteractivePhonicsBalloonPopGame {
     // Select exactly 2 random S-words
     const selectedSWords = this.shuffleArray([...sWords]).slice(0, 2);
     
-    // Select 8 random non-S-words
-    const selectedNonSWords = this.shuffleArray([...nonSWords]).slice(0, 8);
+    // Select 5 random non-S-words (changed from 8 to 5)
+    const selectedNonSWords = this.shuffleArray([...nonSWords]).slice(0, 5);
     
     // Combine and shuffle all selected words
     const allSelectedWords = this.shuffleArray([...selectedSWords, ...selectedNonSWords]);
     
-    // Create 10 balloons with proper spacing
+    // Create 7 balloons with proper spacing (changed from 10 to 7)
     const placedBalloons = [];
     
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 7; i++) {
       const wordData = allSelectedWords[i];
       const balloon = this.createBalloonWithSpacing(wordData.word, wordData.startsWithS, placedBalloons);
       if (balloon) {
@@ -167,14 +167,14 @@ class InteractivePhonicsBalloonPopGame {
   }
   
   findNonOverlappingPosition(size, placedBalloons) {
-    const maxAttempts = 100;
+    const maxAttempts = 150; // Increased attempts for better placement
     const gameAreaWidth = this.gameArea.clientWidth;
     const gameAreaHeight = this.gameArea.clientHeight;
     const minY = gameAreaHeight * 0.4; // Start from 40% down
     const availableY = gameAreaHeight - minY - size;
     
-    // Minimum spacing between balloon centers (balloon radius + padding)
-    const minSpacing = size + 20;
+    // Increased minimum spacing for better readability
+    const minSpacing = size + 30; // Increased from 20 to 30px
     
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const x = Math.random() * (gameAreaWidth - size);
