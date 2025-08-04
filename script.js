@@ -15,6 +15,7 @@ class InteractivePhonicsBalloonPopGame {
     this.correctFound = 0;
     this.gameRunning = false;
     this.balloons = [];
+    this.totalRounds = 5;
     
     // Phonics words - some start with /s/ sound, some don't
     this.words = [
@@ -90,7 +91,7 @@ class InteractivePhonicsBalloonPopGame {
     this.correctFound = 0;
     this.updateDisplay();
     
-    // Create exactly 7 balloons with exactly 2 correct ones
+    // Create balloons for the current round
     this.createBalloons();
   }
   
@@ -99,30 +100,34 @@ class InteractivePhonicsBalloonPopGame {
     const sWords = this.words.filter(w => w.startsWithS);
     const nonSWords = this.words.filter(w => !w.startsWithS);
     
-    // Hardcode the correct word based on current round
+    // Select the correct word based on current round
     let correctWord;
     if (this.currentRound === 1) {
       correctWord = this.words.find(w => w.word === "sock");
     } else if (this.currentRound === 2) {
       correctWord = this.words.find(w => w.word === "sun");
-    } else {
-      // For rounds 3+, randomly select from S-words
-      correctWord = this.shuffleArray([...sWords])[0];
+    } else if (this.currentRound === 3) {
+      correctWord = this.words.find(w => w.word === "snake");
+    } else if (this.currentRound === 4) {
+      correctWord = this.words.find(w => w.word === "star");
+    } else if (this.currentRound === 5) {
+      correctWord = this.words.find(w => w.word === "sail");
     }
     
-    // Select 6 random non-S-words (incorrect answers)
-    const selectedNonSWords = this.shuffleArray([...nonSWords]).slice(0, 6);
+    // Select 5-7 random non-S-words (incorrect answers)
+    const numIncorrect = Math.floor(Math.random() * 3) + 5; // 5-7 incorrect balloons
+    const selectedNonSWords = this.shuffleArray([...nonSWords]).slice(0, numIncorrect);
     
-    // Combine the selected words: 1 correct + 6 incorrect = 7 total
+    // Combine the selected words: 1 correct + incorrect = total
     const allSelectedWords = [correctWord, ...selectedNonSWords];
     
     // Shuffle the combined list to randomize positions
     const shuffledWords = this.shuffleArray(allSelectedWords);
     
-    // Create 7 balloons with proper spacing
+    // Create balloons with proper spacing
     const placedBalloons = [];
     
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < shuffledWords.length; i++) {
       const wordData = shuffledWords[i];
       const balloon = this.createBalloonWithSpacing(wordData.word, wordData.startsWithS, placedBalloons);
       if (balloon) {
@@ -268,8 +273,8 @@ class InteractivePhonicsBalloonPopGame {
       // Play pop sound
       this.playPopSound();
       
-      // Create confetti animation
-      this.createConfetti();
+      // Create explosion effect
+      this.createExplosion();
       
       // Remove balloon after animation
       setTimeout(() => {
@@ -294,6 +299,12 @@ class InteractivePhonicsBalloonPopGame {
     this.currentRound++;
     this.updateDisplay();
     
+    // Check if game is complete
+    if (this.currentRound > this.totalRounds) {
+      this.endGame();
+      return;
+    }
+    
     // Brief delay before next round
     setTimeout(() => {
       this.createRound();
@@ -308,22 +319,40 @@ class InteractivePhonicsBalloonPopGame {
     }, 1000);
   }
   
-  createConfetti() {
-    // Create 20 confetti pieces
-    for (let i = 0; i < 20; i++) {
-      const confetti = document.createElement('div');
-      confetti.classList.add('confetti');
+  createExplosion() {
+    // Create colorful firework explosion effect
+    const explosionColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFEAA7', '#A29BFE', '#FDCB6E', '#FD79A8'];
+    
+    // Create multiple explosion particles
+    for (let i = 0; i < 30; i++) {
+      const particle = document.createElement('div');
+      particle.classList.add('explosion-particle');
       
-      // Random position across the screen
-      confetti.style.left = Math.random() * 100 + '%';
-      confetti.style.animationDelay = Math.random() * 0.5 + 's';
+      // Random color from explosion palette
+      const color = explosionColors[Math.floor(Math.random() * explosionColors.length)];
+      particle.style.backgroundColor = color;
       
-      this.confettiContainer.appendChild(confetti);
+      // Random position around the center
+      const angle = (Math.PI * 2 * i) / 30;
+      const distance = Math.random() * 100 + 50;
+      const x = Math.cos(angle) * distance;
+      const y = Math.sin(angle) * distance;
       
-      // Remove confetti after animation
+      particle.style.left = `calc(50% + ${x}px)`;
+      particle.style.top = `calc(50% + ${y}px)`;
+      
+      // Random size and animation delay
+      const size = Math.random() * 8 + 4;
+      particle.style.width = size + 'px';
+      particle.style.height = size + 'px';
+      particle.style.animationDelay = Math.random() * 0.3 + 's';
+      
+      this.confettiContainer.appendChild(particle);
+      
+      // Remove particle after animation
       setTimeout(() => {
-        confetti.remove();
-      }, 3000);
+        particle.remove();
+      }, 2000);
     }
   }
   
@@ -353,8 +382,8 @@ class InteractivePhonicsBalloonPopGame {
     const gameOverDiv = document.createElement('div');
     gameOverDiv.className = 'game-over';
     gameOverDiv.innerHTML = `
-      <h2>🎉 Amazing Job! 🎉</h2>
-      <p>You completed ${this.currentRound} rounds!</p>
+      <h2>🎉 Congratulations! 🎉</h2>
+      <p>You completed all ${this.totalRounds} rounds!</p>
       <p>Final Score: ${this.score}</p>
       <p>Great phonics practice!</p>
     `;
