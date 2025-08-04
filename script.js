@@ -100,18 +100,29 @@ class InteractivePhonicsBalloonPopGame {
     const sWords = this.words.filter(w => w.startsWithS);
     const nonSWords = this.words.filter(w => !w.startsWithS);
     
-    // Select the correct word based on current round
+    // Guarantee the correct word based on current round
     let correctWord;
     if (this.currentRound === 1) {
+      // Round 1: Always "sock" with image
       correctWord = this.words.find(w => w.word === "sock");
     } else if (this.currentRound === 2) {
+      // Round 2: Always "sun" with image
       correctWord = this.words.find(w => w.word === "sun");
     } else if (this.currentRound === 3) {
+      // Round 3: Always "snake" (text only)
       correctWord = this.words.find(w => w.word === "snake");
     } else if (this.currentRound === 4) {
+      // Round 4: Always "star" (text only)
       correctWord = this.words.find(w => w.word === "star");
     } else if (this.currentRound === 5) {
+      // Round 5: Always "sail" (text only)
       correctWord = this.words.find(w => w.word === "sail");
+    }
+    
+    // Ensure we have a correct word (fallback if needed)
+    if (!correctWord) {
+      console.warn(`No correct word found for round ${this.currentRound}, using first S-word`);
+      correctWord = sWords[0];
     }
     
     // Select 5-7 random non-S-words (incorrect answers)
@@ -134,6 +145,12 @@ class InteractivePhonicsBalloonPopGame {
         this.balloons.push(balloon);
         placedBalloons.push(balloon);
       }
+    }
+    
+    // Verify that we have exactly one correct balloon
+    const correctBalloons = this.balloons.filter(b => b.getAttribute('data-starts-with-s') === 'true');
+    if (correctBalloons.length !== 1) {
+      console.error(`Round ${this.currentRound}: Expected 1 correct balloon, found ${correctBalloons.length}`);
     }
   }
   
@@ -160,9 +177,10 @@ class InteractivePhonicsBalloonPopGame {
       img.src = wordData.img;
       img.alt = word;
       img.classList.add("balloon-img");
+      
+      // Clear any existing content and add image
+      balloon.innerHTML = '';
       balloon.appendChild(img);
-      // Clear any text content to ensure only image shows
-      balloon.textContent = '';
     } else {
       // Add the word text only (no image)
       balloon.textContent = word;
@@ -181,6 +199,7 @@ class InteractivePhonicsBalloonPopGame {
       balloon.style.height = smallerSize + 'px';
       const smallerPosition = this.findNonOverlappingPosition(smallerSize, placedBalloons);
       if (!smallerPosition) {
+        console.warn(`Could not place balloon for word "${word}"`);
         return null; // Skip this balloon if we can't place it
       }
       balloon.style.left = smallerPosition.x + 'px';
