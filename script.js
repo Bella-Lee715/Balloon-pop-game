@@ -99,14 +99,22 @@ class InteractivePhonicsBalloonPopGame {
     const sWords = this.words.filter(w => w.startsWithS);
     const nonSWords = this.words.filter(w => !w.startsWithS);
     
-    // Select exactly 2 random S-words (correct answers)
-    const selectedSWords = this.shuffleArray([...sWords]).slice(0, 2);
+    // Select the correct word based on current round
+    let correctWord;
+    if (this.currentRound === 1) {
+      correctWord = this.words.find(w => w.word === "sock");
+    } else if (this.currentRound === 2) {
+      correctWord = this.words.find(w => w.word === "sun");
+    } else {
+      // For rounds 3+, randomly select from S-words
+      correctWord = this.shuffleArray([...sWords])[0];
+    }
     
-    // Select 5 random non-S-words (incorrect answers)
-    const selectedNonSWords = this.shuffleArray([...nonSWords]).slice(0, 5);
+    // Select 6 random non-S-words (incorrect answers)
+    const selectedNonSWords = this.shuffleArray([...nonSWords]).slice(0, 6);
     
-    // Combine the selected words: 2 correct + 5 incorrect = 7 total
-    const allSelectedWords = [...selectedSWords, ...selectedNonSWords];
+    // Combine the selected words: 1 correct + 6 incorrect = 7 total
+    const allSelectedWords = [correctWord, ...selectedNonSWords];
     
     // Shuffle the combined list to randomize positions
     const shuffledWords = this.shuffleArray(allSelectedWords);
@@ -266,8 +274,8 @@ class InteractivePhonicsBalloonPopGame {
         balloon.remove();
         this.balloons = this.balloons.filter(b => b !== balloon);
         
-        // Check if both correct balloons are popped
-        if (this.correctFound >= 2) {
+        // Check if the correct balloon is popped (only 1 correct balloon now)
+        if (this.correctFound >= 1) {
           this.nextRound();
         }
       }, 800);
@@ -329,7 +337,7 @@ class InteractivePhonicsBalloonPopGame {
   updateDisplay() {
     this.scoreElement.textContent = this.score;
     this.roundElement.textContent = this.currentRound;
-    this.correctFoundElement.textContent = this.correctFound;
+    this.correctFoundElement.textContent = this.correctFound + "/1";
   }
   
   clearGameArea() {
