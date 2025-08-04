@@ -100,7 +100,13 @@ class InteractivePhonicsBalloonPopGame {
     const sWords = this.words.filter(w => w.startsWithS);
     const nonSWords = this.words.filter(w => !w.startsWithS);
     
-    // Guarantee the correct word based on current round
+    // Ensure we have S-words available
+    if (sWords.length === 0) {
+      console.error('No S-words available for the game!');
+      return;
+    }
+    
+    // Select the correct word based on current round
     let correctWord;
     if (this.currentRound === 1) {
       // Round 1: Always "sock" with image
@@ -119,15 +125,26 @@ class InteractivePhonicsBalloonPopGame {
       correctWord = this.words.find(w => w.word === "sail");
     }
     
-    // Ensure we have a correct word (fallback if needed)
+    // Fallback: If the specific word is not found, use a random S-word
     if (!correctWord) {
-      console.warn(`No correct word found for round ${this.currentRound}, using first S-word`);
+      console.warn(`Specific word for round ${this.currentRound} not found, using random S-word`);
+      correctWord = sWords[Math.floor(Math.random() * sWords.length)];
+    }
+    
+    // Ensure we have a valid correct word
+    if (!correctWord || !correctWord.startsWithS) {
+      console.error(`Invalid correct word for round ${this.currentRound}, using first S-word`);
       correctWord = sWords[0];
     }
     
     // Select 5-7 random non-S-words (incorrect answers)
     const numIncorrect = Math.floor(Math.random() * 3) + 5; // 5-7 incorrect balloons
     const selectedNonSWords = this.shuffleArray([...nonSWords]).slice(0, numIncorrect);
+    
+    // Ensure we have enough non-S-words
+    if (selectedNonSWords.length < numIncorrect) {
+      console.warn(`Not enough non-S-words available, using ${selectedNonSWords.length} distractors`);
+    }
     
     // Combine the selected words: 1 correct + incorrect = total
     const allSelectedWords = [correctWord, ...selectedNonSWords];
@@ -137,6 +154,7 @@ class InteractivePhonicsBalloonPopGame {
     
     // Create balloons with proper spacing
     const placedBalloons = [];
+    let correctBalloonCreated = false;
     
     for (let i = 0; i < shuffledWords.length; i++) {
       const wordData = shuffledWords[i];
@@ -144,6 +162,11 @@ class InteractivePhonicsBalloonPopGame {
       if (balloon) {
         this.balloons.push(balloon);
         placedBalloons.push(balloon);
+        
+        // Track if we've created the correct balloon
+        if (wordData.startsWithS) {
+          correctBalloonCreated = true;
+        }
       }
     }
     
@@ -151,6 +174,17 @@ class InteractivePhonicsBalloonPopGame {
     const correctBalloons = this.balloons.filter(b => b.getAttribute('data-starts-with-s') === 'true');
     if (correctBalloons.length !== 1) {
       console.error(`Round ${this.currentRound}: Expected 1 correct balloon, found ${correctBalloons.length}`);
+      
+      // Emergency fix: If no correct balloon was created, force create one
+      if (correctBalloons.length === 0 && !correctBalloonCreated) {
+        console.warn('No correct balloon created, forcing creation of correct balloon');
+        const emergencyBalloon = this.createBalloonWithSpacing(correctWord.word, true, placedBalloons);
+        if (emergencyBalloon) {
+          this.balloons.push(emergencyBalloon);
+        }
+      }
+    } else {
+      console.log(`Round ${this.currentRound}: Successfully created 1 correct balloon with word "${correctWord.word}"`);
     }
   }
   
@@ -199,11 +233,26 @@ class InteractivePhonicsBalloonPopGame {
       balloon.style.height = smallerSize + 'px';
       const smallerPosition = this.findNonOverlappingPosition(smallerSize, placedBalloons);
       if (!smallerPosition) {
-        console.warn(`Could not place balloon for word "${word}"`);
-        return null; // Skip this balloon if we can't place it
+        // For correct balloons, try even smaller size or force placement
+        if (startsWithS) {
+          console.warn(`Could not place correct balloon for word "${word}", trying forced placement`);
+          // Force placement at a random position
+          const gameAreaWidth = this.gameArea.clientWidth;
+          const gameAreaHeight = this.gameArea.clientHeight;
+          const minY = gameAreaHeight * 0.5;
+          const maxY = gameAreaHeight - smallerSize - 20;
+          const availableY = maxY - minY;
+          
+          balloon.style.left = Math.random() * (gameAreaWidth - smallerSize) + 'px';
+          balloon.style.top = minY + Math.random() * availableY + 'px';
+        } else {
+          console.warn(`Could not place balloon for word "${word}"`);
+          return null; // Skip this balloon if we can't place it
+        }
+      } else {
+        balloon.style.left = smallerPosition.x + 'px';
+        balloon.style.top = smallerPosition.y + 'px';
       }
-      balloon.style.left = smallerPosition.x + 'px';
-      balloon.style.top = smallerPosition.y + 'px';
     } else {
       balloon.style.left = position.x + 'px';
       balloon.style.top = position.y + 'px';
@@ -387,7 +436,7 @@ class InteractivePhonicsBalloonPopGame {
   updateDisplay() {
     this.scoreElement.textContent = this.score;
     this.roundElement.textContent = this.currentRound;
-    this.correctFoundElement.textContent = this.correctFound + "/1";
+    this.correctFoundElement.textContent = this.correctFound;
   }
   
   clearGameArea() {
