@@ -19,8 +19,8 @@ class InteractivePhonicsBalloonPopGame {
     // Phonics words - some start with /s/ sound, some don't
     this.words = [
       // Words that start with /s/ sound (should pop)
-      { word: "sun", startsWithS: true },
-      { word: "sock", startsWithS: true },
+      { word: "sun", startsWithS: true, img: "images/sun.png" },
+      { word: "sock", startsWithS: true, img: "images/sock.png" },
       { word: "snake", startsWithS: true },
       { word: "star", startsWithS: true },
       { word: "sail", startsWithS: true },
@@ -32,7 +32,7 @@ class InteractivePhonicsBalloonPopGame {
       { word: "sink", startsWithS: true },
       { word: "soap", startsWithS: true },
       { word: "sail", startsWithS: true },
-      { word: "sock", startsWithS: true },
+      { word: "sock", startsWithS: true, img: "images/sock.png" },
       { word: "soup", startsWithS: true },
       
       // Words that don't start with /s/ sound (should not pop)
@@ -137,8 +137,21 @@ class InteractivePhonicsBalloonPopGame {
     balloon.style.width = size + 'px';
     balloon.style.height = size + 'px';
     
-    // Add the word text
-    balloon.textContent = word;
+    // Find the word data to check for image
+    const wordData = this.words.find(w => w.word === word);
+    
+    // Add content based on whether image is available
+    if (wordData && wordData.img) {
+      // Create image element
+      const img = document.createElement("img");
+      img.src = wordData.img;
+      img.alt = word;
+      img.classList.add("balloon-img");
+      balloon.appendChild(img);
+    } else {
+      // Add the word text
+      balloon.textContent = word;
+    }
     
     // Store the word data
     balloon.setAttribute('data-word', word);

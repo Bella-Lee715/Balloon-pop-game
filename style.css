@@ -77,6 +77,18 @@ h1 {
   box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
 }
 
+/* Balloon image styling */
+.balloon-img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure balloons with images maintain proper text alignment */
 .balloon {
   position: absolute;
   cursor: pointer;
