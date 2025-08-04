@@ -102,13 +102,13 @@ class InteractivePhonicsBalloonPopGame {
     // Select exactly 2 random S-words
     const selectedSWords = this.shuffleArray([...sWords]).slice(0, 2);
     
-    // Select 5 random non-S-words (changed from 8 to 5)
+    // Select 5 random non-S-words
     const selectedNonSWords = this.shuffleArray([...nonSWords]).slice(0, 5);
     
     // Combine and shuffle all selected words
     const allSelectedWords = this.shuffleArray([...selectedSWords, ...selectedNonSWords]);
     
-    // Create 7 balloons with proper spacing (changed from 10 to 7)
+    // Create 7 balloons with proper spacing
     const placedBalloons = [];
     
     for (let i = 0; i < 7; i++) {
@@ -129,8 +129,8 @@ class InteractivePhonicsBalloonPopGame {
     const color = this.balloonColors[Math.floor(Math.random() * this.balloonColors.length)];
     balloon.classList.add(color);
     
-    // Larger size (120-160px)
-    const size = Math.floor(Math.random() * 40) + 120;
+    // Consistent size for better spacing (130-150px)
+    const size = Math.floor(Math.random() * 20) + 130;
     balloon.style.width = size + 'px';
     balloon.style.height = size + 'px';
     
@@ -145,7 +145,7 @@ class InteractivePhonicsBalloonPopGame {
     const position = this.findNonOverlappingPosition(size, placedBalloons);
     if (!position) {
       // If we can't find a position, try with a smaller size
-      const smallerSize = Math.max(100, size - 20);
+      const smallerSize = Math.max(110, size - 20);
       balloon.style.width = smallerSize + 'px';
       balloon.style.height = smallerSize + 'px';
       const smallerPosition = this.findNonOverlappingPosition(smallerSize, placedBalloons);
@@ -167,14 +167,17 @@ class InteractivePhonicsBalloonPopGame {
   }
   
   findNonOverlappingPosition(size, placedBalloons) {
-    const maxAttempts = 150; // Increased attempts for better placement
+    const maxAttempts = 200; // Increased attempts for better placement
     const gameAreaWidth = this.gameArea.clientWidth;
     const gameAreaHeight = this.gameArea.clientHeight;
-    const minY = gameAreaHeight * 0.4; // Start from 40% down
-    const availableY = gameAreaHeight - minY - size;
     
-    // Increased minimum spacing for better readability
-    const minSpacing = size + 30; // Increased from 20 to 30px
+    // Place balloons only in the lower half of the screen
+    const minY = gameAreaHeight * 0.5; // Start from 50% down (lower half only)
+    const maxY = gameAreaHeight - size - 20; // Leave 20px margin from bottom
+    const availableY = maxY - minY;
+    
+    // Generous spacing to ensure no overlap and text visibility
+    const minSpacing = size + 40; // Increased spacing for better separation
     
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const x = Math.random() * (gameAreaWidth - size);
@@ -201,7 +204,11 @@ class InteractivePhonicsBalloonPopGame {
           Math.pow(centerX1 - centerX2, 2) + Math.pow(centerY1 - centerY2, 2)
         );
         
-        if (distance < minSpacing) {
+        // Check for overlap using rectangle intersection as well
+        const rect1 = { x, y, width: size, height: size };
+        const rect2 = { x: existingX, y: existingY, width: existingSize, height: existingSize };
+        
+        if (distance < minSpacing || this.rectanglesOverlap(rect1, rect2)) {
           overlaps = true;
           break;
         }
@@ -213,6 +220,14 @@ class InteractivePhonicsBalloonPopGame {
     }
     
     return null; // Could not find a non-overlapping position
+  }
+  
+  rectanglesOverlap(rect1, rect2) {
+    // Check if two rectangles overlap
+    return !(rect1.x + rect1.width < rect2.x || 
+             rect2.x + rect2.width < rect1.x || 
+             rect1.y + rect1.height < rect2.y || 
+             rect2.y + rect2.height < rect1.y);
   }
   
   handleBalloonClick(balloon, startsWithS) {
