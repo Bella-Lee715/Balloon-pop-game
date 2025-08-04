@@ -114,15 +114,15 @@ class InteractivePhonicsBalloonPopGame {
     } else if (this.currentRound === 2) {
       // Round 2: Always "sun" with image
       correctWord = this.words.find(w => w.word === "sun");
-    } else if (this.currentRound === 3) {
-      // Round 3: Always "snake" (text only)
-      correctWord = this.words.find(w => w.word === "snake");
-    } else if (this.currentRound === 4) {
-      // Round 4: Always "star" (text only)
-      correctWord = this.words.find(w => w.word === "star");
-    } else if (this.currentRound === 5) {
-      // Round 5: Always "sail" (text only)
-      correctWord = this.words.find(w => w.word === "sail");
+    } else if (this.currentRound >= 3 && this.currentRound <= 5) {
+      // Rounds 3-5: Random S-word from the list
+      const availableSWords = sWords.filter(w => w.word !== "sock" && w.word !== "sun"); // Exclude already used words
+      if (availableSWords.length > 0) {
+        correctWord = availableSWords[Math.floor(Math.random() * availableSWords.length)];
+      } else {
+        // Fallback to any S-word if no others available
+        correctWord = sWords[Math.floor(Math.random() * sWords.length)];
+      }
     }
     
     // Fallback: If the specific word is not found, use a random S-word
@@ -388,11 +388,11 @@ class InteractivePhonicsBalloonPopGame {
   }
   
   createExplosion() {
-    // Create colorful firework explosion effect
-    const explosionColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFEAA7', '#A29BFE', '#FDCB6E', '#FD79A8'];
+    // Create full-screen firework explosion effect
+    const explosionColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFEAA7', '#A29BFE', '#FDCB6E', '#FD79A8', '#FFD93D', '#6BCF7F', '#4D96FF'];
     
-    // Create multiple explosion particles
-    for (let i = 0; i < 30; i++) {
+    // Create multiple explosion particles across the entire screen
+    for (let i = 0; i < 50; i++) {
       const particle = document.createElement('div');
       particle.classList.add('explosion-particle');
       
@@ -400,27 +400,61 @@ class InteractivePhonicsBalloonPopGame {
       const color = explosionColors[Math.floor(Math.random() * explosionColors.length)];
       particle.style.backgroundColor = color;
       
-      // Random position around the center
-      const angle = (Math.PI * 2 * i) / 30;
-      const distance = Math.random() * 100 + 50;
-      const x = Math.cos(angle) * distance;
-      const y = Math.sin(angle) * distance;
+      // Random position across the entire screen
+      const x = Math.random() * window.innerWidth;
+      const y = Math.random() * window.innerHeight;
       
-      particle.style.left = `calc(50% + ${x}px)`;
-      particle.style.top = `calc(50% + ${y}px)`;
+      particle.style.left = x + 'px';
+      particle.style.top = y + 'px';
       
       // Random size and animation delay
-      const size = Math.random() * 8 + 4;
+      const size = Math.random() * 12 + 6;
       particle.style.width = size + 'px';
       particle.style.height = size + 'px';
-      particle.style.animationDelay = Math.random() * 0.3 + 's';
+      particle.style.animationDelay = Math.random() * 0.5 + 's';
       
       this.confettiContainer.appendChild(particle);
       
       // Remove particle after animation
       setTimeout(() => {
         particle.remove();
-      }, 2000);
+      }, 3000);
+    }
+    
+    // Play celebratory sound effect
+    this.playCelebrationSound();
+  }
+  
+  playCelebrationSound() {
+    // Create a celebratory sound using Web Audio API
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Create a fanfare-like sound with multiple tones
+      const frequencies = [523.25, 659.25, 783.99, 1046.50]; // C, E, G, C (higher)
+      const duration = 0.3;
+      
+      frequencies.forEach((freq, index) => {
+        setTimeout(() => {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+          oscillator.type = 'sine';
+          
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+          
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + duration);
+        }, index * 150); // Stagger the notes
+      });
+    } catch (e) {
+      // Fallback if Web Audio API is not supported
+      console.log('🎉 Celebration! 🎉');
     }
   }
   
@@ -477,3 +511,7 @@ class InteractivePhonicsBalloonPopGame {
 document.addEventListener('DOMContentLoaded', () => {
   new InteractivePhonicsBalloonPopGame();
 });
+const sound = new Audio("sounds/fanfare.mp3");
+sound.play();
+
+
