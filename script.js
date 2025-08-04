@@ -108,15 +108,20 @@ class InteractivePhonicsBalloonPopGame {
     // Combine and shuffle all selected words
     const allSelectedWords = this.shuffleArray([...selectedSWords, ...selectedNonSWords]);
     
-    // Create 10 balloons
+    // Create 10 balloons with proper spacing
+    const placedBalloons = [];
+    
     for (let i = 0; i < 10; i++) {
       const wordData = allSelectedWords[i];
-      const balloon = this.createBalloon(wordData.word, wordData.startsWithS);
-      this.balloons.push(balloon);
+      const balloon = this.createBalloonWithSpacing(wordData.word, wordData.startsWithS, placedBalloons);
+      if (balloon) {
+        this.balloons.push(balloon);
+        placedBalloons.push(balloon);
+      }
     }
   }
   
-  createBalloon(word, startsWithS) {
+  createBalloonWithSpacing(word, startsWithS, placedBalloons) {
     const balloon = document.createElement("div");
     balloon.classList.add("balloon");
     
@@ -129,15 +134,6 @@ class InteractivePhonicsBalloonPopGame {
     balloon.style.width = size + 'px';
     balloon.style.height = size + 'px';
     
-    // Position in bottom half of screen
-    const maxX = this.gameArea.clientWidth - size;
-    const maxY = this.gameArea.clientHeight - size;
-    const minY = this.gameArea.clientHeight * 0.4; // Start from 40% down
-    const availableY = maxY - minY;
-    
-    balloon.style.left = Math.random() * maxX + 'px';
-    balloon.style.top = minY + Math.random() * availableY + 'px';
-    
     // Add the word text
     balloon.textContent = word;
     
@@ -145,11 +141,78 @@ class InteractivePhonicsBalloonPopGame {
     balloon.setAttribute('data-word', word);
     balloon.setAttribute('data-starts-with-s', startsWithS);
     
+    // Find a position that doesn't overlap with existing balloons
+    const position = this.findNonOverlappingPosition(size, placedBalloons);
+    if (!position) {
+      // If we can't find a position, try with a smaller size
+      const smallerSize = Math.max(100, size - 20);
+      balloon.style.width = smallerSize + 'px';
+      balloon.style.height = smallerSize + 'px';
+      const smallerPosition = this.findNonOverlappingPosition(smallerSize, placedBalloons);
+      if (!smallerPosition) {
+        return null; // Skip this balloon if we can't place it
+      }
+      balloon.style.left = smallerPosition.x + 'px';
+      balloon.style.top = smallerPosition.y + 'px';
+    } else {
+      balloon.style.left = position.x + 'px';
+      balloon.style.top = position.y + 'px';
+    }
+    
     // Add click event
     balloon.addEventListener('click', () => this.handleBalloonClick(balloon, startsWithS));
     
     this.gameArea.appendChild(balloon);
     return balloon;
+  }
+  
+  findNonOverlappingPosition(size, placedBalloons) {
+    const maxAttempts = 100;
+    const gameAreaWidth = this.gameArea.clientWidth;
+    const gameAreaHeight = this.gameArea.clientHeight;
+    const minY = gameAreaHeight * 0.4; // Start from 40% down
+    const availableY = gameAreaHeight - minY - size;
+    
+    // Minimum spacing between balloon centers (balloon radius + padding)
+    const minSpacing = size + 20;
+    
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const x = Math.random() * (gameAreaWidth - size);
+      const y = minY + Math.random() * availableY;
+      
+      // Check if this position overlaps with any existing balloon
+      let overlaps = false;
+      
+      for (const existingBalloon of placedBalloons) {
+        const existingRect = existingBalloon.getBoundingClientRect();
+        const gameAreaRect = this.gameArea.getBoundingClientRect();
+        
+        const existingX = existingRect.left - gameAreaRect.left;
+        const existingY = existingRect.top - gameAreaRect.top;
+        const existingSize = parseInt(existingBalloon.style.width);
+        
+        // Calculate distance between balloon centers
+        const centerX1 = x + size / 2;
+        const centerY1 = y + size / 2;
+        const centerX2 = existingX + existingSize / 2;
+        const centerY2 = existingY + existingSize / 2;
+        
+        const distance = Math.sqrt(
+          Math.pow(centerX1 - centerX2, 2) + Math.pow(centerY1 - centerY2, 2)
+        );
+        
+        if (distance < minSpacing) {
+          overlaps = true;
+          break;
+        }
+      }
+      
+      if (!overlaps) {
+        return { x, y };
+      }
+    }
+    
+    return null; // Could not find a non-overlapping position
   }
   
   handleBalloonClick(balloon, startsWithS) {
