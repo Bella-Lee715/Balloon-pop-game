@@ -150,14 +150,16 @@ class InteractivePhonicsBalloonPopGame {
     
     // Add content based on whether image is available
     if (wordData && wordData.img) {
-      // Create image element
+      // Create image element - ONLY the image, no text
       const img = document.createElement("img");
       img.src = wordData.img;
       img.alt = word;
       img.classList.add("balloon-img");
       balloon.appendChild(img);
+      // Clear any text content to ensure only image shows
+      balloon.textContent = '';
     } else {
-      // Add the word text
+      // Add the word text only (no image)
       balloon.textContent = word;
     }
     
